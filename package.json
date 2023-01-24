@@ -1,10 +1,11 @@
 {
-  "name": "deafio_n3",
+  "name": "Bike Online",
   "version": "1.0.0",
   "description": "",
   "main": "Desafio_N3.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+      "start": "node Desafio_N3.js",
+      "dev": "nodemon Desafio_N3.js"
   },
   "keywords": [],
   "author": "",

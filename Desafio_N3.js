@@ -1,4 +1,5 @@
-const fs = require('fs')                        // Llamamos al modulo file Sytem y lo agregamos a la variable
+const express = require('express');
+const fs = require('fs');                        // Llamamos al modulo file Sytem y lo agregamos a la variable
 
 class ProductManager {
 
@@ -22,7 +23,12 @@ class ProductManager {
                     code,
                     stock
                 } 
-            
+                const existingProduct = this.products.find(product => product.code === code);
+                  if (existingProduct)
+                {
+                   console.error('Code already exists');
+                   return;
+                  }
                 const file = await this.getProducts();
                 file.push(producto);
                 await this.writeFile(this.path, file);
@@ -48,10 +54,11 @@ class ProductManager {
         }
     }
 
-    getProductsById(id) {
+   async getProductsById(id) {
         try {
-            let find = this.products.find(item => item.id == id);
-            return find ? this.products[id-1] : "Not found";
+            const file = await this.getProducts(); 
+            let find = file.find(item => item.id == id);
+            return find ? file[id-1] : "Not found";
         } catch (error) {
             console.log(`Error ${error}`);        
         }
@@ -81,15 +88,17 @@ class ProductManager {
         }    
     }
 
+
+
     async updateProduct(id, data){
         try {
             const file = await this.getProducts();
             const findID = file.find(item => item.id == id);
-            console.log(findID);
+            //console.log(findID);
             if(findID){
-                const aux = file.findIndex(item => item.id == id)
                 data.id = id;
-                file.splice(aux, 1, data);
+                file[file.findIndex(item => item.id == id)] = data;
+                
                 await this.writeFile(this.path, data)
             }
         } catch (error) {
@@ -99,15 +108,53 @@ class ProductManager {
 }
 
 
-    let poductManager = new ProductManager('./products.json')        // Creamos la clase product manager                
 
-    const main = async () => {
-    
-    // poductManager.addProduct('Titile1', 'Primer Producto', 5, 'http.img', 456, 40);
-    //poductManager.addProduct('Titile2', 'Segundo Producto', '10', 'http.img', 457, 60);
-    //poductManager.getProducts(); 
-   // poductManager.delteProduct(1);
-    poductManager.updateProduct(1,{"id": 1, "title": "Titile2", "description": "Segundo_Producto", "price": 10, "thumbnail": "http.img", code: 457, "stock": 60});
+/* http://localhost:8080/products */
+/* http://localhost:8080/products/2 */
+
+
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({extended: true}))
+
+
+app.get('/products', async(req, res) => {                               // Creamos el endpoint con la ruta productos, solo para consultas con el metodo get.
+    const poductManager = new ProductManager('./products.json');        // Creamos la clase product manager  
+    const getProduct = await poductManager.getProducts();
+    if(getProduct) {
+        const { limit } = req.query;
+        limit ? res.status(200).send(getProduct.filter(item => item.id <= limit)) : res.status(200).send(getProduct);
+    }
+    else {
+        res.status(404).send('Not Found');
     }
 
-    main()
+});
+
+
+
+    app.get('/products/:pid', async (req, res) => {                          // Creamos el endpoint con la ruta productos/ y enviar por params el PID, solo para consultas con el metodo get.
+        const poductManager = new ProductManager('./products.json');        // Creamos la clase product manager  
+        const getProduct = await poductManager.getProducts();
+        const { pid } = req.params;
+        find = getProduct.find(item => item.id == pid );
+        find ? res.status(200).send(find) : res.status(404).send("Not Found");
+    });
+
+
+    const server = app.listen(8080, () => console.log("Server listen in port 8080"));
+    server.on("error", error => console.error(error));
+
+
+
+        
+
+
+
+
+
+
+
+
+   
