@@ -134,6 +134,50 @@ class ProductManager{
 
 };
 
+
+
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+
+
+
+
+
+const app = expres();
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+
+
+
+app.get(`/products`, async (req, res)=> {
+    const productManager = new ProductManager("../products.json")    // Creo una nueva instancia u objeto de la clase ProductManager.
+    const viewProducts = await productManager.getProducts();
+    if(viewProducts) {
+        const { limit } = req.query;
+        limit ? res.status(200).send(viewProducts.filter(item => item.id <= limit)) : res.status(200).send(viewProducts);
+    } else {
+        res.status(400).send("NotFound");
+    }
+});
+
+app.get(`/products:pid`, async (req, res) => {
+    const productManager = new ProductManager("../products.json")    // Creo una nueva instancia u objeto de la clase ProductManager.
+    const viewProducts = await productManager.getProducts();
+    const { pid } = req.params;
+    idSerch = viewProducts.find(item => item.id == pid);
+    idSerch ? res.status(200).send(idSerch) : res.status(404).send("Not Found");
+});
+
+const server = app.listen(8080, console.log("Running in port 8080"))
+server.on(`error`, error => console.log(error))
+
+
+
+
+
+
+
 /* 
 const productManager = new ProductManager("../products.json")    // Creo una nueva instancia u objeto de la clase ProductManager.
 function main(productManager) {                                 // Creo una funcion main, para poder ejecutar los metodos de la clase y ademas crear la variable con los datos a registrar.
@@ -202,25 +246,3 @@ function main(productManager) {                                 // Creo una func
 
 // main(productManager);     // Paso por parametro a la funcion main mi nueva instancia de la clase.
  
-const app = expres();
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-
-
-
-app.get(`/products`, async (req, res)=> {
-    const productManager = new ProductManager("../products.json")    // Creo una nueva instancia u objeto de la clase ProductManager.
-    const viewProducts = await productManager.getProducts();
-    if(viewProducts) {
-        const {limit} = req.query;
-        limit ? res.status(200).send(viewProducts.filter(item => item.id <= limit)) : res.status(200).send(viewProducts);
-    } else {
-        res.status(400).send("NotFound");
-    }
-});
-
-app.get(`/products:pid`, async (req, res) => {
-    const productManager = new ProductManager("../products.json")    // Creo una nueva instancia u objeto de la clase ProductManager.
-    const viewProducts = await productManager.getProducts();
-
-})
